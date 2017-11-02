@@ -33,7 +33,6 @@
   // return just the first element.
   _.first = function(array, n) {
     return n === undefined ? array[0] : array.slice(0, n);
-
     // if (n === undefined) {
     //   return array[0];
     // } else {
@@ -46,7 +45,6 @@
   _.last = function(array, n) {
     var first = n > array.length ? 0 : array.length - n;
     return n === undefined ? array[array.length - 1] : array.slice(first, array.length);
-    
     // if (n === undefined) {
     //   return array[array.length - 1];
     // } else {
@@ -84,18 +82,22 @@
         result = index;
       }
     });
-
     return result;
   };
 
   // Return all elements of an array that pass a truth test.
   _.filter = function(collection, test) {
     var passed = [];
-    for (var i = 0; i < collection.length; i++) {
-      if (test(collection[i], i, collection)) { // Same use as iterator
-        passed.push(collection[i]);
+    _.each(collection, function(index) {
+      if (test(collection[index - 1], index - 1, collection)) { // Same use as iterator
+        passed.push(collection[index - 1]);
       }
-    }
+    });
+    // for (var i = 0; i < collection.length; i++) {
+    //   if (test(collection[i], i, collection)) { // Same use as iterator
+    //     passed.push(collection[i]);
+    //   }
+    // }
     return passed;
   };
 
@@ -107,26 +109,6 @@
       return !test(i);
     });
   };
-
-
-  // _.uniq = _.unique = function (array, isSorted, iterator, context) {       
-  //   if (_.isFunction(isSorted)) {           
-  //     context = iterator;           
-  //     iterator = isSorted;           
-  //     isSorted = false;       
-  //   }       
-  //   var initial = iterator ? _.map(array, iterator, context) : array;       
-  //   var results = [];       
-  //   var seen = [];       
-  //   _.each(initial, function (value, index) {           
-  //     if (isSorted ? (!index || seen[seen.length - 1] !== value) : !_.contains(seen, value)) {               
-  //       seen.push(value);               
-  //       results.push(array[index]);           
-  //     }       
-  //   });       
-  //   return results;   
-  // }
-
 
   // Produce a duplicate-free version of the array.
   _.uniq = function(array, isSorted, iterator) {
@@ -147,25 +129,7 @@
         dupFree.push(array[i]);
       }
     });
-      
-    
-    // var hash = {};
-
-    // _.each(array, function(i) {
-    //   hash[i] = i;
-    // });
-
-    // _.each(hash, function(val) {
-    //   dupFree.push(val);
-    // });
-    // return dupFree;
-
-    // if (isSorted) {
-    //   console.log("true");
-    // }
-
-
-
+    return dupFree;
     // if (_.indexOf(dupFree, i) === -1) {
 
     // }
@@ -175,9 +139,7 @@
     //     isSorted = true;
     //   }
     // });
-    return dupFree;
   };
-
 
   // Return the results of applying an iterator to each element.
   _.map = function(collection, iterator) {
@@ -189,6 +151,7 @@
     _.each(collection, function(val, i, collection) {
       results.push(iterator(val, i, collection));
     });
+    return results;
     // if (Array.isArray(collection)) { // First check if array
     //   for (var i = 0; i < collection.length; i++) {
     //     results.push(iterator(collection[i], i, collection));
@@ -198,7 +161,6 @@
     //     results.push(iterator(collection[j], j, collection));
     //   }
     // }
-    return results;
   };
 
   /*
@@ -240,30 +202,17 @@
   //   }); // should be 5, regardless of the iterator function passed in
   //          No accumulator is given so the first element is used.
   _.reduce = function(collection, iterator, accumulator) {
-    // if (accumulator === undefined) {
-    //   accumulator = collection[0];
-    // }
-    // accumulator = accumulator || 0;
-    var hasTwo = arguments.length === 2;
+    var hasTwo = arguments.length === 2; // If no accumulator is passed in
 
     _.each(collection, function(val) {
       if (!hasTwo) {
         accumulator = iterator(accumulator, val);
       } else {
-        accumulator = val;
-        hasTwo = false;
+        accumulator = val; // Since no accumulator was passed in, assign a new one equal to val
+        hasTwo = false; // Negate hasTwo, since there is now a 3rd argument (accumulator)
       }
-      // accumulator = iterator(accumulator, val);
     });
     return accumulator;
-    // for (var i = 0; i < collection.length; i++) {
-    //   if (accumulator === undefined) {
-    //     accumulator = i;
-    //   } else {
-    //     accumulator = iterator(accumulator, i);
-    //   }
-    // }
-    // return accumulator;
   };
 
   // Determine if the array or object contains a given value (using `===`).
@@ -278,16 +227,28 @@
     }, false);
   };
 
-
   // Determine whether all of the elements match a truth test.
   _.every = function(collection, iterator) {
     // TIP: Try re-using reduce() here.
+    return _.reduce(collection, function(matches, value) {
+      if (matches) {
+        if (iterator) {
+          return iterator(value) ? true : false;
+        } else {
+          return value ? true : false;
+        }
+      }
+      return false;
+    }, true);
   };
 
   // Determine whether any of the elements pass a truth test. If no iterator is
   // provided, provide a default one
   _.some = function(collection, iterator) {
     // TIP: There's a very clever way to re-use every() here.
+    return !_.every(collection, function(value) { // If this evaluates to true, we know some values didn't pass
+      return iterator ? !iterator(value) : !value; // Negate the "truths" to see if any satisfy the !_.every()
+    });
   };
 
 
@@ -310,11 +271,31 @@
   //     bla: "even more stuff"
   //   }); // obj1 now contains key1, key2, key3 and bla
   _.extend = function(obj) {
+    // var object = _.map(arguments, function(item) {
+    //   return item;
+    // });
+    _.each(arguments, function(item) { // Pass in item, which represents each argument
+      _.each(item, function(value, key) { // Iterate through each value at each key
+        obj[key] = value; // Add in the value at the key (in the case of identical keys, the subsequent value overwrites the prior)
+      });
+    });
+    return obj;
   };
 
   // Like extend, but doesn't ever overwrite a key that already
   // exists in obj
   _.defaults = function(obj) {
+    // var object = _.map(arguments, function(item) {
+    //   return item;
+    // });
+    _.each(arguments, function(item) {
+      _.each(item, function(value, key) {
+        if (!obj.hasOwnProperty(key)) { // Prevents overwriting by checking if the key property already has a value
+          obj[key] = value;
+        }
+      });
+    });
+    return obj;
   };
 
 
@@ -358,6 +339,17 @@
   // already computed the result for the given argument and return that value
   // instead if possible.
   _.memoize = function(func) {
+    // var alreadyComputed = false;
+    var result = {};
+
+    return function() {
+      var args = JSON.stringify(arguments); // Primitive values only
+
+      if (!result[args]) { // Not already computed
+        result[args] = func.apply(this, arguments);
+      }
+      return result[args];
+    }
   };
 
   // Delays a function for the given number of milliseconds, and then calls
@@ -367,6 +359,16 @@
   // parameter. For example _.delay(someFunction, 500, 'a', 'b') will
   // call someFunction('a', 'b') after 500ms
   _.delay = function(func, wait) {
+    // var args = _.map(arguments, function(val) { 
+    //   return val; 
+    // }).slice(2);
+
+    //Since we can't use slice on arguments, we call arguments into an empty array
+    var args = [].slice.call(arguments, [2]); // Creates empty array, then calls in arguments from index 2 and on
+
+    setTimeout(function() {
+      func.apply(this, args);
+    }, wait);
   };
 
 
@@ -381,6 +383,23 @@
   // input array. For a tip on how to make a copy of an array, see:
   // http://mdn.io/Array.prototype.slice
   _.shuffle = function(array) {
+    var arrCopy = array.slice();
+    var val;
+
+    for (var i = 0; i < arrCopy.length; i++) {
+      var random = Math.floor(Math.random() * arrCopy.length); // Turn the randomly generated value to an int (whole number)
+      // In order to change values by index, we need to swap them one-by-one
+      val = arrCopy[i];
+      arrCopy[i] = arrCopy[random];
+      arrCopy[random] = val;
+    }
+    // _.each(arrCopy, function(i) {
+    //   var random = Math.floor(Math.random() * arrCopy.length);
+    //   val = arrCopy[i];
+    //   arrCopy[i] = arrCopy[random];
+    //   arrCopy[random] = val;
+    // });
+    return arrCopy;
   };
 
 
