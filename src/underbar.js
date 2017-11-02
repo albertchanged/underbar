@@ -414,6 +414,7 @@
     }
     // _.each(arrCopy, function(i) {
     //   var random = Math.floor(Math.random() * arrCopy.length);
+    //   In order to change values by index, we need to swap them one-by-one
     //   val = arrCopy[i];
     //   arrCopy[i] = arrCopy[random];
     //   arrCopy[random] = val;
