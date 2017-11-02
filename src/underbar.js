@@ -129,7 +129,26 @@
         dupFree.push(array[i]);
       }
     });
+<<<<<<< HEAD
     return dupFree;
+=======
+     
+    // var hash = {};
+
+    // _.each(array, function(i) {
+    //   hash[i] = i;
+    // });
+
+    // _.each(hash, function(val) {
+    //   dupFree.push(val);
+    // });
+    // return dupFree;
+
+    // if (isSorted) {
+    //   console.log("true");
+    // }
+    
+>>>>>>> bd6afdbba2fa17693b1fd37c65d5b49667fc8a2a
     // if (_.indexOf(dupFree, i) === -1) {
 
     // }
